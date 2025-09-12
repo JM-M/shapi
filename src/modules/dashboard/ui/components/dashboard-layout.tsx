@@ -8,7 +8,7 @@ import {
 import { useMemo } from "react";
 import { useDashboardLayout } from "../../hooks/use-dashboard-layout";
 
-const LEFT_PANEL_MIN_WIDTH = 240;
+const LEFT_PANEL_MIN_WIDTH = 220;
 
 interface DashboardLayoutProps {
   leftPanel?: React.ReactNode;
@@ -44,7 +44,7 @@ export const DashboardLayout = ({
         <ResizablePanel
           defaultSize={33}
           minSize={leftPanelMinWidth}
-          // maxSize={60}
+        // maxSize={60}
         >
           {leftPanel}
         </ResizablePanel>
@@ -52,8 +52,8 @@ export const DashboardLayout = ({
 
         <ResizablePanel
           defaultSize={33}
-          // minSize={25}
-          // maxSize={panelWidths.right > 0 ? 60 : 100}
+        // minSize={25}
+        // maxSize={panelWidths.right > 0 ? 60 : 100}
         >
           {middlePanel}
         </ResizablePanel>
@@ -61,8 +61,8 @@ export const DashboardLayout = ({
         <ResizableHandle />
         <ResizablePanel
           defaultSize={34}
-          // minSize={25}
-          // maxSize={60}
+        // minSize={25}
+        // maxSize={60}
         >
           {rightPanel}
         </ResizablePanel>
