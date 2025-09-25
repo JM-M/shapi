@@ -226,7 +226,7 @@ export function CodeEditor({
 
   return (
     <div
-      className={`code-editor ${className}`}
+      className={`code-editor rounded-md border ${className}`}
       style={{
         position: "relative",
         paddingTop: showCopyButton ? "36px" : "0",

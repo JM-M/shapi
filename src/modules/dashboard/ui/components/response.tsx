@@ -1,5 +1,4 @@
 import { CodeEditor } from "@/components/code-editor";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDashboard } from "@/contexts/dashboard";
 
 export const Response = () => {
@@ -19,52 +18,45 @@ export const Response = () => {
   };
 
   const getStatusColor = (status: number) => {
-    if (status >= 200 && status < 300) return "bg-green-500";
-    if (status >= 300 && status < 400) return "bg-yellow-500";
-    if (status >= 400 && status < 500) return "bg-orange-500";
-    if (status >= 500) return "bg-red-500";
-    return "bg-gray-500";
+    if (status >= 200 && status < 300) return "bg-green-700";
+    if (status >= 300 && status < 400) return "bg-yellow-700";
+    if (status >= 400 && status < 500) return "bg-orange-700";
+    if (status >= 500) return "bg-red-700";
+    return "bg-gray-700";
   };
 
   if (!state.response) {
     return (
-      <div className="p-2">
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-muted-foreground text-center">
-              <p>No response yet. Send a request to see the response here.</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="p-4">
+        <div className="text-muted-foreground text-center">
+          <p>No response yet. Send a request to see the response here.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 p-2">
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Response</CardTitle>
-            <div className="flex items-center gap-2">
-              <div
-                className={`rounded px-2 py-1 text-xs font-medium text-white ${getStatusColor(state.response.status)}`}
-              >
-                {state.response.status} {state.response.statusText}
-              </div>
+    <div className="space-y-4 p-4">
+      <div>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="font-semibold">Response</h3>
+          <div className="flex items-center gap-2">
+            <div
+              className={`rounded px-2 py-1 text-xs font-medium text-white ${getStatusColor(state.response.status)}`}
+            >
+              {state.response.status} {state.response.statusText}
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          <CodeEditor
-            value={formatResponseData()}
-            onChange={() => {}}
-            placeholder=""
-            readOnly
-            hideCursor
-          />
-        </CardContent>
-      </Card>
+        </div>
+        <CodeEditor
+          value={formatResponseData()}
+          onChange={() => {}}
+          placeholder=""
+          readOnly
+          hideCursor
+          showCopyButton
+        />
+      </div>
     </div>
   );
 };

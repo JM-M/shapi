@@ -73,7 +73,7 @@ export const RequestTypes = () => {
               {types.requestType.name}
             </span>
           </div>
-          <div className="bg-muted/50 rounded-md border">
+          <div>
             <CodeEditor
               value={types.requestType.definition}
               onChange={() => {}}
@@ -82,6 +82,7 @@ export const RequestTypes = () => {
               className="h-fit"
               readOnly
               showCopyButton
+              hideCursor
             />
           </div>
         </div>
