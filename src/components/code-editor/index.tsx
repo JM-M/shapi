@@ -2,16 +2,18 @@
 
 "use client";
 
+import { javascript } from "@codemirror/lang-javascript";
 import { json } from "@codemirror/lang-json";
 import { yaml } from "@codemirror/lang-yaml";
 import { EditorView } from "@codemirror/view";
 import { vscodeDark } from "@uiw/codemirror-theme-vscode";
 import type { BasicSetupOptions } from "@uiw/react-codemirror";
 import CodeMirror from "@uiw/react-codemirror";
+import { Check, Copy } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useMemo, useState } from "react";
 
-export type SupportedLanguage = "json" | "yaml" | "auto";
+export type SupportedLanguage = "json" | "yaml" | "typescript" | "auto";
 
 interface CodeEditorProps {
   value: string;
@@ -27,6 +29,7 @@ interface CodeEditorProps {
   className?: string;
   onLanguageChange?: (language: SupportedLanguage) => void;
   basicSetup?: BasicSetupOptions;
+  showCopyButton?: boolean;
 }
 
 export function CodeEditor({
@@ -43,11 +46,13 @@ export function CodeEditor({
   className = "",
   onLanguageChange,
   basicSetup,
+  showCopyButton = false,
 }: CodeEditorProps) {
   const { theme, resolvedTheme } = useTheme();
   const [detectedLanguage, setDetectedLanguage] =
     useState<SupportedLanguage>("auto");
   const [mounted, setMounted] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Handle hydration mismatch by ensuring component is mounted
   useEffect(() => {
@@ -73,12 +78,29 @@ export function CodeEditor({
       }
     }
 
+    // Check for TypeScript/JavaScript (basic heuristics)
+    if (
+      (trimmed.includes("interface ") ||
+        trimmed.includes("type ") ||
+        trimmed.includes("enum ") ||
+        trimmed.includes("function ") ||
+        trimmed.includes("const ") ||
+        trimmed.includes("let ") ||
+        trimmed.includes("var ")) &&
+      !trimmed.startsWith("{") &&
+      !trimmed.startsWith("[")
+    ) {
+      return "typescript";
+    }
+
     // Check for YAML (basic heuristics)
     if (
       trimmed.includes(":") &&
       (trimmed.includes("\n") || trimmed.includes("---")) &&
       !trimmed.startsWith("{") &&
-      !trimmed.startsWith("[")
+      !trimmed.startsWith("[") &&
+      !trimmed.includes("interface ") &&
+      !trimmed.includes("type ")
     ) {
       return "yaml";
     }
@@ -106,6 +128,8 @@ export function CodeEditor({
         return [json()];
       case "yaml":
         return [yaml()];
+      case "typescript":
+        return [javascript({ typescript: true })];
       default:
         return [];
     }
@@ -165,6 +189,17 @@ export function CodeEditor({
     }
   };
 
+  // Handle copy to clipboard
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
+    }
+  };
+
   // Prevent hydration mismatch by not rendering until mounted
   if (!mounted) {
     return (
@@ -190,7 +225,32 @@ export function CodeEditor({
   }
 
   return (
-    <div className={`code-editor ${className}`}>
+    <div
+      className={`code-editor ${className}`}
+      style={{
+        position: "relative",
+        paddingTop: showCopyButton ? "36px" : "0",
+      }}
+    >
+      {showCopyButton && (
+        <button
+          onClick={handleCopy}
+          className="absolute top-2 right-2 z-10 flex items-center gap-1 rounded-md bg-gray-100/30 px-2 py-1 text-xs text-gray-600 hover:bg-gray-100/80 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-700/80"
+          title={copied ? "Copied!" : "Copy to clipboard"}
+        >
+          {copied ? (
+            <>
+              <Check className="h-3 w-3" />
+              Copied!
+            </>
+          ) : (
+            <>
+              <Copy className="h-3 w-3" />
+              Copy
+            </>
+          )}
+        </button>
+      )}
       <CodeMirror
         value={value}
         onChange={handleChange}
@@ -224,6 +284,7 @@ export function LanguageSelector({
     { value: "auto", label: "Auto-detect" },
     { value: "json", label: "JSON" },
     { value: "yaml", label: "YAML" },
+    { value: "typescript", label: "TypeScript" },
   ];
 
   return (
