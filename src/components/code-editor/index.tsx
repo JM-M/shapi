@@ -1,9 +1,12 @@
+// TODO: Consider deleting this component
+
 "use client";
 
 import { json } from "@codemirror/lang-json";
 import { yaml } from "@codemirror/lang-yaml";
 import { EditorView } from "@codemirror/view";
 import { vscodeDark } from "@uiw/codemirror-theme-vscode";
+import type { BasicSetupOptions } from "@uiw/react-codemirror";
 import CodeMirror from "@uiw/react-codemirror";
 import { useTheme } from "next-themes";
 import { useEffect, useMemo, useState } from "react";
@@ -20,8 +23,10 @@ interface CodeEditorProps {
   maxHeight?: string;
   width?: string;
   readOnly?: boolean;
+  hideCursor?: boolean;
   className?: string;
   onLanguageChange?: (language: SupportedLanguage) => void;
+  basicSetup?: BasicSetupOptions;
 }
 
 export function CodeEditor({
@@ -34,8 +39,10 @@ export function CodeEditor({
   maxHeight = "600px",
   width = "100%",
   readOnly = false,
+  hideCursor = false,
   className = "",
   onLanguageChange,
+  basicSetup,
 }: CodeEditorProps) {
   const { theme, resolvedTheme } = useTheme();
   const [detectedLanguage, setDetectedLanguage] =
@@ -104,6 +111,18 @@ export function CodeEditor({
     }
   };
 
+  // Get extensions including cursor hiding if needed
+  const getExtensions = () => {
+    const extensions = [...getLanguageExtension(), EditorView.lineWrapping];
+
+    // Hide cursor and prevent selection if hideCursor is true
+    if (hideCursor) {
+      extensions.push(EditorView.editable.of(false));
+    }
+
+    return extensions;
+  };
+
   // Get the theme - handle hydration mismatch
   const getTheme = () => {
     if (!mounted) {
@@ -111,6 +130,26 @@ export function CodeEditor({
     }
     return resolvedTheme === "dark" ? vscodeDark : "light";
   };
+
+  // Default basic setup configuration
+  const defaultBasicSetup: BasicSetupOptions = {
+    lineNumbers: true,
+    foldGutter: true,
+    dropCursor: false,
+    allowMultipleSelections: false,
+    indentOnInput: true,
+    bracketMatching: true,
+    closeBrackets: true,
+    autocompletion: true,
+    highlightActiveLine: true,
+    highlightSelectionMatches: true,
+    searchKeymap: true,
+  };
+
+  // Merge user-provided basicSetup with defaults
+  const basicSetupWithDefaults = useMemo(() => {
+    return { ...defaultBasicSetup, ...basicSetup };
+  }, [basicSetup]);
 
   // Handle value changes
   const handleChange = (newValue: string) => {
@@ -162,20 +201,8 @@ export function CodeEditor({
         placeholder={placeholder}
         readOnly={readOnly}
         theme={getTheme()}
-        extensions={[...getLanguageExtension(), EditorView.lineWrapping]}
-        basicSetup={{
-          lineNumbers: true,
-          foldGutter: true,
-          dropCursor: false,
-          allowMultipleSelections: false,
-          indentOnInput: true,
-          bracketMatching: true,
-          closeBrackets: true,
-          autocompletion: true,
-          highlightActiveLine: true,
-          highlightSelectionMatches: true,
-          searchKeymap: true,
-        }}
+        extensions={getExtensions()}
+        basicSetup={basicSetupWithDefaults}
       />
     </div>
   );
