@@ -5,7 +5,7 @@ import { useDashboard } from "@/contexts/dashboard";
 import { importSwaggerFromUrl } from "@/lib/swagger-import-utils";
 import * as yaml from "js-yaml";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export const Hero = () => {
   const [url, setUrl] = useState("");
@@ -18,7 +18,7 @@ export const Hero = () => {
   } = useDashboard();
   const router = useRouter();
 
-  const handleImport = async () => {
+  const handleImport = useCallback(async () => {
     if (!url.trim()) {
       setError("Please enter a URL");
       return;
@@ -70,14 +70,30 @@ export const Hero = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [url, setSwaggerSpec, setContextError, router]);
+
+  // Add keyboard shortcut for Ctrl + Enter
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.key === "Enter") {
+        event.preventDefault();
+        handleImport();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleImport]); // Include handleImport in dependencies
 
   return (
     <header className="flex flex-col items-center justify-center space-y-10 py-36">
       <div className="border-bg-muted max-auto flex min-h-32 w-lg flex-col gap-2 rounded-xl border p-2">
         <Textarea
           placeholder="Paste OpenAPI/Swagger url, file or text"
-          className="text-muted-foreground flex-1 p-2 text-sm"
+          className="flex-1 p-2 text-sm"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           disabled={isLoading}
