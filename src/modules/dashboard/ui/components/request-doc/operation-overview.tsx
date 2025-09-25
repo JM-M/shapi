@@ -20,8 +20,8 @@ export const OperationOverview = ({
   method,
 }: OperationOverviewProps) => {
   return (
-    <Card>
-      <CardHeader>
+    <Card className="py-3">
+      <CardHeader className="px-3">
         <div className="flex items-center gap-2">
           <CardTitle className="text-lg">
             {operation.summary || "API Endpoint"}
@@ -43,7 +43,7 @@ export const OperationOverview = ({
           </p>
         )}
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-3">
         {operation.description && (
           <div className="prose prose-sm max-w-none">
             <p className="text-sm leading-relaxed">{operation.description}</p>

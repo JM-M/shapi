@@ -10,11 +10,11 @@ export const SecuritySection = ({ security }: SecuritySectionProps) => {
   if (!security || security.length === 0) return null;
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="py-3">
+      <CardHeader className="px-3">
         <CardTitle className="text-base">Security</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-3">
         <p className="text-muted-foreground text-sm">
           This endpoint requires authentication. Please configure authentication
           in the Auth tab.

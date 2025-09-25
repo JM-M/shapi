@@ -22,11 +22,11 @@ export const RequestBodySection = ({
   if (!requestBody) return null;
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="py-3">
+      <CardHeader className="px-3">
         <CardTitle className="text-base">Request Body</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-3">
         {requestBody.description && (
           <p className="text-muted-foreground mb-3 text-sm">
             {requestBody.description}

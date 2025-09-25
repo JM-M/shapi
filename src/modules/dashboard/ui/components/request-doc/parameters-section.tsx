@@ -27,11 +27,11 @@ export const ParametersSection = ({ parameters }: ParametersSectionProps) => {
   const headerParams = parameters.filter((p) => p.in === "header");
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="py-3">
+      <CardHeader className="px-3">
         <CardTitle className="text-base">Parameters</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 px-3">
         {pathParams.length > 0 && (
           <div>
             <h4 className="text-foreground mb-2 text-sm font-medium">

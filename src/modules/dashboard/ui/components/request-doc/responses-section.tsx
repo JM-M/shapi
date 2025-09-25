@@ -30,11 +30,11 @@ export const ResponsesSection = ({ responses }: ResponsesSectionProps) => {
   if (Object.keys(responses).length === 0) return null;
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="py-3">
+      <CardHeader className="px-3">
         <CardTitle className="text-base">Responses</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-3 px-3">
         {Object.entries(responses).map(([statusCode, response]) => (
           <div key={statusCode} className="rounded-lg border p-3">
             <div className="mb-2 flex items-center gap-2">
