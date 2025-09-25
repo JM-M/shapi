@@ -114,6 +114,16 @@ export const RequestInput = () => {
           headers.Authorization = `Bearer ${state.bearerToken}`;
         }
 
+        // Add custom headers
+        const enabledHeaders = state.headers.filter(
+          (header) =>
+            header.enabled && header.key.trim() && header.value.trim(),
+        );
+
+        enabledHeaders.forEach((header) => {
+          headers[header.key] = header.value;
+        });
+
         // Build URL with path parameters
         let finalUrl = state.requestUrl;
         const enabledPathParams = state.pathParams.filter(

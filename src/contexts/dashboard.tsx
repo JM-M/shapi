@@ -40,6 +40,7 @@ export interface DashboardState {
   requestBodyType: "json";
   queryParams: QueryParam[];
   pathParams: QueryParam[];
+  headers: QueryParam[];
 }
 
 export interface DashboardContextType {
@@ -63,6 +64,9 @@ export interface DashboardContextType {
   updatePathParam: (id: string, updates: Partial<QueryParam>) => void;
   removePathParam: (id: string) => void;
   syncPathParamsWithUrl: (url: string) => void;
+  addHeader: (param: QueryParam) => void;
+  updateHeader: (id: string, updates: Partial<QueryParam>) => void;
+  removeHeader: (id: string) => void;
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(
@@ -96,6 +100,7 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     requestBodyType: "json",
     queryParams: [],
     pathParams: [],
+    headers: [],
   });
 
   const extractBaseUrl = (spec: SwaggerSpec): string => {
@@ -292,6 +297,29 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     });
   };
 
+  const addHeader = (param: QueryParam) => {
+    setState((prev) => ({
+      ...prev,
+      headers: [...prev.headers, param],
+    }));
+  };
+
+  const updateHeader = (id: string, updates: Partial<QueryParam>) => {
+    setState((prev) => ({
+      ...prev,
+      headers: prev.headers.map((param) =>
+        param.id === id ? { ...param, ...updates } : param,
+      ),
+    }));
+  };
+
+  const removeHeader = (id: string) => {
+    setState((prev) => ({
+      ...prev,
+      headers: prev.headers.filter((param) => param.id !== id),
+    }));
+  };
+
   const resetDashboard = () => {
     setState({
       swaggerSpec: null,
@@ -307,6 +335,7 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
       requestBodyType: "json",
       queryParams: [],
       pathParams: [],
+      headers: [],
     });
   };
 
@@ -331,6 +360,9 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     updatePathParam,
     removePathParam,
     syncPathParamsWithUrl,
+    addHeader,
+    updateHeader,
+    removeHeader,
   };
 
   return (
