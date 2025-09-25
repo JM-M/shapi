@@ -59,10 +59,27 @@ export const RequestInput = () => {
           headers.Authorization = `Bearer ${state.bearerToken}`;
         }
 
+        // Prepare request data
+        let data: any = undefined;
+        if (
+          state.requestBody.trim() &&
+          (state.requestMethod === "POST" ||
+            state.requestMethod === "PUT" ||
+            state.requestMethod === "PATCH")
+        ) {
+          try {
+            data = JSON.parse(state.requestBody);
+            headers["Content-Type"] = "application/json";
+          } catch (error) {
+            throw new Error("Invalid JSON in request body");
+          }
+        }
+
         const response = await axios({
           method: state.requestMethod.toLowerCase() as any,
           url: state.requestUrl,
           headers,
+          data,
           timeout: 10000, // 10 second timeout
         });
 

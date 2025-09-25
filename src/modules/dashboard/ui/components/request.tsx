@@ -1,5 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RequestAuth } from "./request-auth";
+import { RequestBody } from "./request-body";
 import { RequestDoc } from "./request-doc";
 import { RequestInput } from "./request-input";
 import { RequestQuery } from "./request-query";
@@ -34,7 +35,7 @@ export const Request = () => {
           <RequestAuth />
         </TabsContent>
         <TabsContent value="body" className="flex-1">
-          Body
+          <RequestBody />
         </TabsContent>
       </Tabs>
     </div>
