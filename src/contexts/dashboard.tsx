@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import * as yaml from "js-yaml";
+import { createContext, ReactNode, useContext, useState } from "react";
 
 export interface SwaggerSpec {
   data: string;
@@ -11,10 +12,22 @@ export interface SwaggerSpec {
   description?: string;
 }
 
+export interface RequestResponse {
+  data: any;
+  status: number;
+  statusText: string;
+  headers: Record<string, string>;
+}
+
 export interface DashboardState {
   swaggerSpec: SwaggerSpec | null;
   isLoading: boolean;
   error: string | null;
+  requestUrl: string;
+  requestMethod: string;
+  baseUrl: string;
+  response: RequestResponse | null;
+  isRequestLoading: boolean;
 }
 
 export interface DashboardContextType {
@@ -24,9 +37,15 @@ export interface DashboardContextType {
   setError: (error: string | null) => void;
   clearError: () => void;
   resetDashboard: () => void;
+  setRequestUrl: (url: string) => void;
+  setRequestMethod: (method: string) => void;
+  setResponse: (response: RequestResponse | null) => void;
+  setRequestLoading: (loading: boolean) => void;
 }
 
-const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
+const DashboardContext = createContext<DashboardContextType | undefined>(
+  undefined,
+);
 
 export function useDashboard() {
   const context = useContext(DashboardContext);
@@ -45,12 +64,57 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     swaggerSpec: null,
     isLoading: false,
     error: null,
+    requestUrl: "https://jsonplaceholder.typicode.com/posts",
+    requestMethod: "GET",
+    baseUrl: "",
+    response: null,
+    isRequestLoading: false,
   });
 
+  const extractBaseUrl = (spec: SwaggerSpec): string => {
+    try {
+      const data =
+        spec.format === "yaml" ? yaml.load(spec.data) : JSON.parse(spec.data);
+
+      // Check for servers array (OpenAPI 3.0+)
+      if (
+        data.servers &&
+        Array.isArray(data.servers) &&
+        data.servers.length > 0
+      ) {
+        return data.servers[0].url || "";
+      }
+
+      // Check for host, basePath, schemes (Swagger 2.0)
+      if (data.host) {
+        const scheme =
+          data.schemes && data.schemes.length > 0 ? data.schemes[0] : "https";
+        const basePath = data.basePath || "";
+        return `${scheme}://${data.host}${basePath}`;
+      }
+
+      // If no server info found, try to extract from the original URL
+      if (spec.url) {
+        try {
+          const url = new URL(spec.url);
+          return `${url.protocol}//${url.host}`;
+        } catch {
+          return "";
+        }
+      }
+
+      return "";
+    } catch {
+      return "";
+    }
+  };
+
   const setSwaggerSpec = (spec: SwaggerSpec | null) => {
+    const baseUrl = spec ? extractBaseUrl(spec) : "";
     setState((prev) => ({
       ...prev,
       swaggerSpec: spec,
+      baseUrl,
       error: null, // Clear any previous errors when setting new spec
     }));
   };
@@ -76,11 +140,44 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     }));
   };
 
+  const setRequestUrl = (url: string) => {
+    setState((prev) => ({
+      ...prev,
+      requestUrl: url,
+    }));
+  };
+
+  const setRequestMethod = (method: string) => {
+    setState((prev) => ({
+      ...prev,
+      requestMethod: method,
+    }));
+  };
+
+  const setResponse = (response: RequestResponse | null) => {
+    setState((prev) => ({
+      ...prev,
+      response,
+    }));
+  };
+
+  const setRequestLoading = (loading: boolean) => {
+    setState((prev) => ({
+      ...prev,
+      isRequestLoading: loading,
+    }));
+  };
+
   const resetDashboard = () => {
     setState({
       swaggerSpec: null,
       isLoading: false,
       error: null,
+      requestUrl: "https://jsonplaceholder.typicode.com/posts",
+      requestMethod: "GET",
+      baseUrl: "",
+      response: null,
+      isRequestLoading: false,
     });
   };
 
@@ -91,6 +188,10 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     setError,
     clearError,
     resetDashboard,
+    setRequestUrl,
+    setRequestMethod,
+    setResponse,
+    setRequestLoading,
   };
 
   return (

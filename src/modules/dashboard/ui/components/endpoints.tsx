@@ -10,7 +10,7 @@ import { Fragment, useMemo } from "react";
 import { CommandPalette } from "./command-palette";
 
 export const Endpoints = () => {
-  const { state } = useDashboard();
+  const { state, setRequestUrl, setRequestMethod } = useDashboard();
 
   const endpoints = useMemo(() => {
     if (!state.swaggerSpec) return [];
@@ -90,8 +90,15 @@ export const Endpoints = () => {
                       key={j}
                       className={cn(
                         buttonVariants({ variant: "ghost" }),
-                        "flex h-[unset] items-start gap-2 rounded-l-none p-2",
+                        "hover:bg-accent/50 flex h-[unset] cursor-pointer items-center justify-between gap-2 rounded-l-none p-2",
                       )}
+                      onClick={() => {
+                        const fullUrl = state.baseUrl
+                          ? `${state.baseUrl}${endpoint.path.startsWith("/") ? "" : "/"}${endpoint.path}`
+                          : endpoint.path;
+                        setRequestUrl(fullUrl);
+                        setRequestMethod(endpoint.method);
+                      }}
                     >
                       <div className="flex flex-wrap items-center text-wrap">
                         {endpoint.path.split("/").map((part, k) => (

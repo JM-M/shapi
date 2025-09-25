@@ -10,7 +10,6 @@ import { Response } from "../components/response";
 
 export const DashboardView = () => {
   const { state, resetDashboard } = useDashboard();
-  console.log(state);
 
   if (!state.swaggerSpec) {
     return (
