@@ -28,6 +28,7 @@ export interface DashboardState {
   baseUrl: string;
   response: RequestResponse | null;
   isRequestLoading: boolean;
+  bearerToken: string;
 }
 
 export interface DashboardContextType {
@@ -41,6 +42,7 @@ export interface DashboardContextType {
   setRequestMethod: (method: string) => void;
   setResponse: (response: RequestResponse | null) => void;
   setRequestLoading: (loading: boolean) => void;
+  setBearerToken: (token: string) => void;
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(
@@ -69,6 +71,7 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     baseUrl: "",
     response: null,
     isRequestLoading: false,
+    bearerToken: "",
   });
 
   const extractBaseUrl = (spec: SwaggerSpec): string => {
@@ -168,6 +171,13 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     }));
   };
 
+  const setBearerToken = (token: string) => {
+    setState((prev) => ({
+      ...prev,
+      bearerToken: token,
+    }));
+  };
+
   const resetDashboard = () => {
     setState({
       swaggerSpec: null,
@@ -178,6 +188,7 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
       baseUrl: "",
       response: null,
       isRequestLoading: false,
+      bearerToken: "",
     });
   };
 
@@ -192,6 +203,7 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     setRequestMethod,
     setResponse,
     setRequestLoading,
+    setBearerToken,
   };
 
   return (

@@ -52,9 +52,17 @@ export const RequestInput = () => {
       setResponse(null);
 
       try {
+        const headers: Record<string, string> = {};
+
+        // Add Bearer token if available
+        if (state.bearerToken) {
+          headers.Authorization = `Bearer ${state.bearerToken}`;
+        }
+
         const response = await axios({
           method: state.requestMethod.toLowerCase() as any,
           url: state.requestUrl,
+          headers,
           timeout: 10000, // 10 second timeout
         });
 

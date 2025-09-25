@@ -1,4 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RequestAuth } from "./request-auth";
 import { RequestDoc } from "./request-doc";
 import { RequestInput } from "./request-input";
 import { RequestQuery } from "./request-query";
@@ -27,7 +28,9 @@ export const Request = () => {
           <RequestQuery />
         </TabsContent>
         <TabsContent value="headers">Headers</TabsContent>
-        <TabsContent value="auth">Auth</TabsContent>
+        <TabsContent value="auth">
+          <RequestAuth />
+        </TabsContent>
         <TabsContent value="body">Body</TabsContent>
       </Tabs>
     </div>
