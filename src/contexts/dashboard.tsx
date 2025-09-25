@@ -39,7 +39,7 @@ export interface DashboardState {
   requestBody: string;
   requestBodyType: "json";
   queryParams: QueryParam[];
-  urlParams: QueryParam[];
+  pathParams: QueryParam[];
 }
 
 export interface DashboardContextType {
@@ -59,9 +59,10 @@ export interface DashboardContextType {
   addQueryParam: (param: QueryParam) => void;
   updateQueryParam: (id: string, updates: Partial<QueryParam>) => void;
   removeQueryParam: (id: string) => void;
-  addUrlParam: (param: QueryParam) => void;
-  updateUrlParam: (id: string, updates: Partial<QueryParam>) => void;
-  removeUrlParam: (id: string) => void;
+  addPathParam: (param: QueryParam) => void;
+  updatePathParam: (id: string, updates: Partial<QueryParam>) => void;
+  removePathParam: (id: string) => void;
+  syncPathParamsWithUrl: (url: string) => void;
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(
@@ -94,7 +95,7 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     requestBody: "",
     requestBodyType: "json",
     queryParams: [],
-    urlParams: [],
+    pathParams: [],
   });
 
   const extractBaseUrl = (spec: SwaggerSpec): string => {
@@ -226,7 +227,7 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     setState((prev) => ({
       ...prev,
       queryParams: prev.queryParams.map((param) =>
-        param.id === id ? { ...param, ...updates } : param
+        param.id === id ? { ...param, ...updates } : param,
       ),
     }));
   };
@@ -238,27 +239,57 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     }));
   };
 
-  const addUrlParam = (param: QueryParam) => {
+  const addPathParam = (param: QueryParam) => {
     setState((prev) => ({
       ...prev,
-      urlParams: [...prev.urlParams, param],
+      pathParams: [...prev.pathParams, param],
     }));
   };
 
-  const updateUrlParam = (id: string, updates: Partial<QueryParam>) => {
+  const updatePathParam = (id: string, updates: Partial<QueryParam>) => {
     setState((prev) => ({
       ...prev,
-      urlParams: prev.urlParams.map((param) =>
-        param.id === id ? { ...param, ...updates } : param
+      pathParams: prev.pathParams.map((param) =>
+        param.id === id ? { ...param, ...updates } : param,
       ),
     }));
   };
 
-  const removeUrlParam = (id: string) => {
+  const removePathParam = (id: string) => {
     setState((prev) => ({
       ...prev,
-      urlParams: prev.urlParams.filter((param) => param.id !== id),
+      pathParams: prev.pathParams.filter((param) => param.id !== id),
     }));
+  };
+
+  const syncPathParamsWithUrl = (url: string) => {
+    const pathParamKeys =
+      url.match(/\{([^}]+)\}/g)?.map((match) => match.slice(1, -1)) || [];
+
+    setState((prev) => {
+      const existingParams = prev.pathParams;
+      const newParams: QueryParam[] = [];
+
+      // Create params for new keys
+      pathParamKeys.forEach((key) => {
+        const existingParam = existingParams.find((param) => param.key === key);
+        if (existingParam) {
+          newParams.push(existingParam);
+        } else {
+          newParams.push({
+            id: Math.random().toString(36).substr(2, 9),
+            key,
+            value: "",
+            enabled: true,
+          });
+        }
+      });
+
+      return {
+        ...prev,
+        pathParams: newParams,
+      };
+    });
   };
 
   const resetDashboard = () => {
@@ -274,6 +305,8 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
       bearerToken: "",
       requestBody: "",
       requestBodyType: "json",
+      queryParams: [],
+      pathParams: [],
     });
   };
 
@@ -291,6 +324,13 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     setBearerToken,
     setRequestBody,
     setRequestBodyType,
+    addQueryParam,
+    updateQueryParam,
+    removeQueryParam,
+    addPathParam,
+    updatePathParam,
+    removePathParam,
+    syncPathParamsWithUrl,
   };
 
   return (

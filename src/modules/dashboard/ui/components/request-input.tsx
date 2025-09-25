@@ -21,6 +21,7 @@ export const RequestInput = () => {
     setResponse,
     setRequestLoading,
     setError,
+    syncPathParamsWithUrl,
   } = useDashboard();
 
   // Helper function to get the path part from a full URL
@@ -38,6 +39,60 @@ export const RequestInput = () => {
       return path; // Already a full URL
     }
     return `${baseUrl}${path.startsWith("/") ? "" : "/"}${path}`;
+  };
+
+  // Helper function to build URL with path and query parameters for display
+  const buildUrlWithParams = (
+    baseUrl: string,
+    pathParams: any[],
+    queryParams: any[],
+  ): string => {
+    if (!baseUrl) return "";
+
+    // Replace path parameters
+    let urlWithPathParams = baseUrl;
+    pathParams.forEach((param) => {
+      if (param.value.trim()) {
+        urlWithPathParams = urlWithPathParams.replace(
+          `{${param.key}}`,
+          encodeURIComponent(param.value),
+        );
+      }
+    });
+
+    // Add query parameters
+    const enabledQueryParams = queryParams.filter(
+      (param) => param.enabled && param.key.trim() && param.value.trim(),
+    );
+
+    if (enabledQueryParams.length === 0) {
+      return urlWithPathParams;
+    }
+
+    const queryString = enabledQueryParams
+      .map(
+        (param) =>
+          `${encodeURIComponent(param.key)}=${encodeURIComponent(param.value)}`,
+      )
+      .join("&");
+
+    return `${urlWithPathParams}${urlWithPathParams.includes("?") ? "&" : "?"}${queryString}`;
+  };
+
+  // Helper function to extract base URL from full URL with query params
+  const extractBaseUrl = (fullUrl: string): string => {
+    try {
+      const url = new URL(fullUrl);
+      return `${url.protocol}//${url.host}${url.pathname}`;
+    } catch {
+      return fullUrl;
+    }
+  };
+
+  // Helper function to extract path parameter keys from URL
+  const extractPathParamKeys = (url: string): string[] => {
+    const matches = url.match(/\{([^}]+)\}/g);
+    return matches ? matches.map((match) => match.slice(1, -1)) : [];
   };
 
   const { mutate, isPending } = useMutation({
@@ -59,6 +114,33 @@ export const RequestInput = () => {
           headers.Authorization = `Bearer ${state.bearerToken}`;
         }
 
+        // Build URL with path parameters
+        let finalUrl = state.requestUrl;
+        const enabledPathParams = state.pathParams.filter(
+          (param) => param.enabled && param.key.trim() && param.value.trim(),
+        );
+
+        if (enabledPathParams.length > 0) {
+          const urlObj = new URL(finalUrl);
+          enabledPathParams.forEach((param) => {
+            urlObj.pathname = urlObj.pathname.replace(
+              `{${param.key}}`,
+              param.value,
+            );
+          });
+          finalUrl = urlObj.toString();
+        }
+
+        // Build query parameters
+        const params: Record<string, string> = {};
+        const enabledQueryParams = state.queryParams.filter(
+          (param) => param.enabled && param.key.trim() && param.value.trim(),
+        );
+
+        enabledQueryParams.forEach((param) => {
+          params[param.key] = param.value;
+        });
+
         // Prepare request data
         let data: any = undefined;
         if (
@@ -77,7 +159,8 @@ export const RequestInput = () => {
 
         const response = await axios({
           method: state.requestMethod.toLowerCase() as any,
-          url: state.requestUrl,
+          url: finalUrl,
+          params,
           headers,
           data,
           timeout: 10000, // 10 second timeout
@@ -130,11 +213,16 @@ export const RequestInput = () => {
       <Input
         placeholder="Enter or pasteURL"
         className="w-full pr-24 pl-24"
-        value={state.requestUrl}
+        value={buildUrlWithParams(
+          state.requestUrl,
+          state.pathParams,
+          state.queryParams,
+        )}
         onChange={(e) => {
           const newValue = e.target.value;
-          const fullUrl = buildFullUrl(newValue, state.baseUrl);
-          setRequestUrl(fullUrl);
+          const baseUrl = extractBaseUrl(newValue);
+          setRequestUrl(baseUrl);
+          syncPathParamsWithUrl(baseUrl);
         }}
       />
       <Button

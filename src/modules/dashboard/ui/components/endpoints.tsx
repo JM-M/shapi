@@ -10,7 +10,8 @@ import { Fragment, useMemo } from "react";
 import { CommandPalette } from "./command-palette";
 
 export const Endpoints = () => {
-  const { state, setRequestUrl, setRequestMethod } = useDashboard();
+  const { state, setRequestUrl, setRequestMethod, syncPathParamsWithUrl } =
+    useDashboard();
 
   const endpoints = useMemo(() => {
     if (!state.swaggerSpec) return [];
@@ -98,6 +99,7 @@ export const Endpoints = () => {
                           : endpoint.path;
                         setRequestUrl(fullUrl);
                         setRequestMethod(endpoint.method);
+                        syncPathParamsWithUrl(fullUrl);
                       }}
                     >
                       <div className="flex flex-wrap items-center text-wrap">
