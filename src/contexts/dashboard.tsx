@@ -19,6 +19,13 @@ export interface RequestResponse {
   headers: Record<string, string>;
 }
 
+export interface QueryParam {
+  id: string;
+  key: string;
+  value: string;
+  enabled: boolean;
+}
+
 export interface DashboardState {
   swaggerSpec: SwaggerSpec | null;
   isLoading: boolean;
@@ -31,6 +38,8 @@ export interface DashboardState {
   bearerToken: string;
   requestBody: string;
   requestBodyType: "json";
+  queryParams: QueryParam[];
+  urlParams: QueryParam[];
 }
 
 export interface DashboardContextType {
@@ -47,6 +56,12 @@ export interface DashboardContextType {
   setBearerToken: (token: string) => void;
   setRequestBody: (body: string) => void;
   setRequestBodyType: (type: "json") => void;
+  addQueryParam: (param: QueryParam) => void;
+  updateQueryParam: (id: string, updates: Partial<QueryParam>) => void;
+  removeQueryParam: (id: string) => void;
+  addUrlParam: (param: QueryParam) => void;
+  updateUrlParam: (id: string, updates: Partial<QueryParam>) => void;
+  removeUrlParam: (id: string) => void;
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(
@@ -78,6 +93,8 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     bearerToken: "",
     requestBody: "",
     requestBodyType: "json",
+    queryParams: [],
+    urlParams: [],
   });
 
   const extractBaseUrl = (spec: SwaggerSpec): string => {
@@ -195,6 +212,52 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     setState((prev) => ({
       ...prev,
       requestBodyType: type,
+    }));
+  };
+
+  const addQueryParam = (param: QueryParam) => {
+    setState((prev) => ({
+      ...prev,
+      queryParams: [...prev.queryParams, param],
+    }));
+  };
+
+  const updateQueryParam = (id: string, updates: Partial<QueryParam>) => {
+    setState((prev) => ({
+      ...prev,
+      queryParams: prev.queryParams.map((param) =>
+        param.id === id ? { ...param, ...updates } : param
+      ),
+    }));
+  };
+
+  const removeQueryParam = (id: string) => {
+    setState((prev) => ({
+      ...prev,
+      queryParams: prev.queryParams.filter((param) => param.id !== id),
+    }));
+  };
+
+  const addUrlParam = (param: QueryParam) => {
+    setState((prev) => ({
+      ...prev,
+      urlParams: [...prev.urlParams, param],
+    }));
+  };
+
+  const updateUrlParam = (id: string, updates: Partial<QueryParam>) => {
+    setState((prev) => ({
+      ...prev,
+      urlParams: prev.urlParams.map((param) =>
+        param.id === id ? { ...param, ...updates } : param
+      ),
+    }));
+  };
+
+  const removeUrlParam = (id: string) => {
+    setState((prev) => ({
+      ...prev,
+      urlParams: prev.urlParams.filter((param) => param.id !== id),
     }));
   };
 

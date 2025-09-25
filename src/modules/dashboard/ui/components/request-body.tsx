@@ -119,8 +119,6 @@ export const RequestBody = () => {
     }
   };
 
-  console.log(canGenerateMockData);
-
   return (
     <div className="flex h-full flex-col space-y-4">
       <div className="flex items-center justify-between">
@@ -149,7 +147,7 @@ export const RequestBody = () => {
           language="json"
           placeholder="Enter JSON request body..."
         />
-        {true && (
+        {canGenerateMockData && (
           <div className="mt-2 flex items-center justify-end space-x-2">
             <Button variant="outline" size="sm" onClick={generateMockData}>
               Generate Mock Data
