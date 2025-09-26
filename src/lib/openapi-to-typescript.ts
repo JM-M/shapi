@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import * as yaml from "js-yaml";
 
 export interface OpenAPISpec {
@@ -90,7 +92,7 @@ export function extractOperationSchemas(operation: any): {
     operation.responses?.["200"]?.content?.["application/json"]?.schema ||
     operation.responses?.["201"]?.content?.["application/json"]?.schema ||
     operation.responses?.["default"]?.content?.["application/json"]?.schema ||
-    Object.values(operation.responses || {}).find(
+    (Object.values(operation.responses || {}) as any[]).find(
       (r: any) => r.content?.["application/json"]?.schema,
     )?.content?.["application/json"]?.schema;
 

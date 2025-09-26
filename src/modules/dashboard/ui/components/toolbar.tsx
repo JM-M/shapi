@@ -9,8 +9,7 @@ import { Columns3Icon, Home, LayoutPanelLeftIcon } from "lucide-react";
 import Link from "next/link";
 
 export const Toolbar = () => {
-  const { state, toggleLeftPanel, toggleRightPanel, toggleLayoutType } =
-    useDashboard();
+  const { state, toggleLeftPanel, toggleLayoutType } = useDashboard();
   const { layout } = state;
 
   const handleLeftPanelToggle = (pressed: boolean) => {

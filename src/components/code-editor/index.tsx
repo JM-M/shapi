@@ -48,7 +48,7 @@ export function CodeEditor({
   basicSetup,
   showCopyButton = false,
 }: CodeEditorProps) {
-  const { theme, resolvedTheme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const [detectedLanguage, setDetectedLanguage] =
     useState<SupportedLanguage>("auto");
   const [mounted, setMounted] = useState(false);
@@ -173,7 +173,7 @@ export function CodeEditor({
   // Merge user-provided basicSetup with defaults
   const basicSetupWithDefaults = useMemo(() => {
     return { ...defaultBasicSetup, ...basicSetup };
-  }, [basicSetup]);
+  }, [basicSetup, defaultBasicSetup]);
 
   // Handle value changes
   const handleChange = (newValue: string) => {

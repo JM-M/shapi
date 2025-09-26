@@ -10,7 +10,7 @@ import { Request } from "../components/request";
 import { Response } from "../components/response";
 
 export const DashboardView = () => {
-  const { state, resetDashboard } = useDashboard();
+  const { state } = useDashboard();
   const router = useRouter();
 
   useEffect(() => {

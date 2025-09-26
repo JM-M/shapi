@@ -18,8 +18,8 @@ export const RequestAuth = () => {
           className="font-mono text-sm"
         />
         <p className="text-muted-foreground text-xs">
-          This token will be included in the Authorization header as "Bearer
-          [your-token]"
+          This token will be included in the Authorization header as {'"'}Bearer
+          [your-token]{'"'}
         </p>
       </div>
     </div>

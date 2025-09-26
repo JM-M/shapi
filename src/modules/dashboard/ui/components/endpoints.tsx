@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client";
 
 import { buttonVariants } from "@/components/ui/button";
@@ -39,12 +41,14 @@ export const Endpoints = () => {
   // Function to check if an endpoint is currently active
   const isEndpointActive = (endpoint: { path: string; method: string }) => {
     if (!state.requestUrl || !state.requestMethod) return false;
-    
+
     const fullUrl = state.baseUrl
       ? `${state.baseUrl}${endpoint.path.startsWith("/") ? "" : "/"}${endpoint.path}`
       : endpoint.path;
-    
-    return fullUrl === state.requestUrl && endpoint.method === state.requestMethod;
+
+    return (
+      fullUrl === state.requestUrl && endpoint.method === state.requestMethod
+    );
   };
 
   // State to track which groups are open (default: all open)
@@ -190,16 +194,14 @@ export const Endpoints = () => {
                   <ul className="border-accent/50 ml-4 border-l text-[13px]">
                     {groupEndpoints.map((endpoint, j) => {
                       const isActive = isEndpointActive(endpoint);
-                      
+
                       return (
                         <li
                           key={j}
                           className={cn(
                             buttonVariants({ variant: "ghost" }),
                             "flex h-[unset] cursor-pointer items-center justify-between gap-2 rounded-l-none p-2",
-                            isActive 
-                              ? "bg-accent/50" 
-                              : "hover:bg-accent/50"
+                            isActive ? "bg-accent/50" : "hover:bg-accent/50",
                           )}
                           onClick={() => {
                             const fullUrl = state.baseUrl
@@ -210,24 +212,25 @@ export const Endpoints = () => {
                             syncPathParamsWithUrl(fullUrl);
                           }}
                         >
-                        <div className="flex flex-wrap items-center text-wrap">
-                          {endpoint.path.split("/").map((part, k) => (
-                            <Fragment key={k}>
-                              <span>
-                                {part}
-                                {k < endpoint.path.split("/").length - 1 && "/"}
-                              </span>
-                            </Fragment>
-                          ))}
-                        </div>
-                        <span
-                          className={cn(
-                            "text-xs font-medium",
-                            getMethodStyle(endpoint.method),
-                          )}
-                        >
-                          {endpoint.method}
-                        </span>
+                          <div className="flex flex-wrap items-center text-wrap">
+                            {endpoint.path.split("/").map((part, k) => (
+                              <Fragment key={k}>
+                                <span>
+                                  {part}
+                                  {k < endpoint.path.split("/").length - 1 &&
+                                    "/"}
+                                </span>
+                              </Fragment>
+                            ))}
+                          </div>
+                          <span
+                            className={cn(
+                              "text-xs font-medium",
+                              getMethodStyle(endpoint.method),
+                            )}
+                          >
+                            {endpoint.method}
+                          </span>
                         </li>
                       );
                     })}

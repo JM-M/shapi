@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { CodeEditor } from "@/components/code-editor";
 import { Button } from "@/components/ui/button";
 import { useDashboard } from "@/contexts/dashboard";

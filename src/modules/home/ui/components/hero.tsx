@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,11 +13,7 @@ export const Hero = () => {
   const [url, setUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const {
-    setSwaggerSpec,
-    setLoading,
-    setError: setContextError,
-  } = useDashboard();
+  const { setSwaggerSpec, setError: setContextError } = useDashboard();
   const router = useRouter();
 
   const handleImport = useCallback(async () => {
@@ -40,7 +38,10 @@ export const Hero = () => {
               ? yaml.load(result.data)
               : JSON.parse(result.data);
         } catch (parseError) {
-          console.warn("Could not parse spec for metadata extraction");
+          console.warn(
+            "Could not parse spec for metadata extraction: ",
+            parseError,
+          );
           specData = {};
         }
 
