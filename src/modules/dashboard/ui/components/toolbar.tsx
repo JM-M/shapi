@@ -6,6 +6,7 @@ import { Toggle } from "@/components/ui/toggle";
 import { useDashboard } from "@/contexts/dashboard";
 import siteConfig from "@/site.config";
 import { Columns3Icon, Home, LayoutPanelLeftIcon } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 export const Toolbar = () => {
@@ -45,8 +46,9 @@ export const Toolbar = () => {
       </div>
 
       {/* Center section - Could be used for breadcrumbs or title */}
-      <div className="flex items-center">
-        <span className="text-muted-foreground text-sm font-medium">
+      <div className="flex items-center gap-2">
+        <Image src={siteConfig.logo} alt="Logo" width={16} height={16} />
+        <span className="text-secondary text-sm font-medium">
           {siteConfig.name}
         </span>
       </div>

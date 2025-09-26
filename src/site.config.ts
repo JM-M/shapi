@@ -6,6 +6,7 @@ const siteConfig = {
   license: "MIT",
   website: "https://shapi.com",
   keywords: ["shapi", "api", "swagger", "openapi"],
+  logo: "/logo.png",
 };
 
 export default siteConfig;
