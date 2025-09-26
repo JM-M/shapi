@@ -92,10 +92,15 @@ export const Hero = () => {
     <header className="flex flex-col items-center justify-center space-y-10 py-36">
       <div className="border-bg-muted max-auto flex min-h-32 w-lg flex-col gap-2 rounded-xl border p-2">
         <Textarea
-          placeholder="Paste OpenAPI/Swagger url, file or text"
+          placeholder="Link to OpenAPI/Swagger website or file"
           className="flex-1 p-2 text-sm"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+            }
+          }}
           disabled={isLoading}
         />
         {error && <div className="px-2 text-sm text-red-500">{error}</div>}

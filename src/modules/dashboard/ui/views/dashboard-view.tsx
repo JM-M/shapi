@@ -1,8 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDashboard } from "@/contexts/dashboard";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { DashboardLayout } from "../components/dashboard-layout";
 import { Endpoints } from "../components/endpoints";
 import { Request } from "../components/request";
@@ -10,6 +11,13 @@ import { Response } from "../components/response";
 
 export const DashboardView = () => {
   const { state, resetDashboard } = useDashboard();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!state.swaggerSpec) {
+      router.push("/");
+    }
+  }, [state.swaggerSpec, router]);
 
   if (!state.swaggerSpec) {
     return (
@@ -22,12 +30,12 @@ export const DashboardView = () => {
             <p className="text-muted-foreground">
               Please import a Swagger/OpenAPI specification to get started.
             </p>
-            <Button
+            {/* <Button
               onClick={() => (window.location.href = "/")}
               className="w-full"
             >
               Go to Import
-            </Button>
+            </Button> */}
           </CardContent>
         </Card>
       </div>
