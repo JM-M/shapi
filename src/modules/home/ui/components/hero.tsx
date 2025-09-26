@@ -16,62 +16,67 @@ export const Hero = () => {
   const { setSwaggerSpec, setError: setContextError } = useDashboard();
   const router = useRouter();
 
-  const handleImport = useCallback(async () => {
-    if (!url.trim()) {
-      setError("Please enter a URL");
-      return;
-    }
+  const handleImport = useCallback(
+    async (importUrl?: string) => {
+      const urlToUse = importUrl || url;
 
-    setIsLoading(true);
-    setError(null);
-    setContextError(null);
+      if (!urlToUse.trim()) {
+        setError("Please enter a URL");
+        return;
+      }
 
-    try {
-      const result = await importSwaggerFromUrl(url);
+      setIsLoading(true);
+      setError(null);
+      setContextError(null);
 
-      if (result.success && result.data) {
-        // Parse the spec to extract metadata
-        let specData: any;
-        try {
-          specData =
-            result.format === "yaml"
-              ? yaml.load(result.data)
-              : JSON.parse(result.data);
-        } catch (parseError) {
-          console.warn(
-            "Could not parse spec for metadata extraction: ",
-            parseError,
-          );
-          specData = {};
+      try {
+        const result = await importSwaggerFromUrl(urlToUse);
+
+        if (result.success && result.data) {
+          // Parse the spec to extract metadata
+          let specData: any;
+          try {
+            specData =
+              result.format === "yaml"
+                ? yaml.load(result.data)
+                : JSON.parse(result.data);
+          } catch (parseError) {
+            console.warn(
+              "Could not parse spec for metadata extraction: ",
+              parseError,
+            );
+            specData = {};
+          }
+
+          // Save to dashboard context
+          setSwaggerSpec({
+            data: result.data,
+            format: result.format!,
+            url: urlToUse,
+            title: specData.info?.title || "Imported API",
+            version: specData.info?.version || "1.0.0",
+            description: specData.info?.description || "",
+          });
+
+          // Navigate to dashboard
+          router.push("/dashboard");
+        } else {
+          const errorMessage =
+            result.error || "Failed to import Swagger specification";
+          setError(errorMessage);
+          setContextError(errorMessage);
         }
-
-        // Save to dashboard context
-        setSwaggerSpec({
-          data: result.data,
-          format: result.format!,
-          url: url,
-          title: specData.info?.title || "Imported API",
-          version: specData.info?.version || "1.0.0",
-          description: specData.info?.description || "",
-        });
-
-        // Navigate to dashboard
-        router.push("/dashboard");
-      } else {
+      } catch (err) {
         const errorMessage =
-          result.error || "Failed to import Swagger specification";
+          err instanceof Error ? err.message : "An unexpected error occurred";
         setError(errorMessage);
         setContextError(errorMessage);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An unexpected error occurred";
-      setError(errorMessage);
-      setContextError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [url, setSwaggerSpec, setContextError, router]);
+    },
+    [url, setSwaggerSpec, setContextError, router],
+  );
 
   // Add keyboard shortcut for Ctrl + Enter
   useEffect(() => {
@@ -91,7 +96,18 @@ export const Hero = () => {
 
   return (
     <header className="flex flex-col items-center justify-center space-y-10 py-36">
-      <div className="border-bg-muted max-auto flex min-h-32 w-lg flex-col gap-2 rounded-xl border p-2">
+      {/* Hero Title and Subtitle */}
+      <div className="space-y-4 px-10 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight md:text-6xl">
+          A Better Way to Test APIs
+        </h1>
+        <p className="text-muted-foreground mx-auto max-w-xl">
+          Import your OpenAPI/Swagger specifications and test your APIs with
+          ease. No more complex tools - just paste a URL and start testing.
+        </p>
+      </div>
+
+      <div className="border-bg-muted max-auto border-primary/60 flex min-h-32 w-lg flex-col gap-2 rounded-xl border p-2">
         <Textarea
           placeholder="Link to OpenAPI/Swagger website or file"
           className="flex-1 p-2 text-sm"
@@ -106,7 +122,10 @@ export const Hero = () => {
         />
         {error && <div className="px-2 text-sm text-red-500">{error}</div>}
         <div className="mt-auto flex items-center justify-end">
-          <Button onClick={handleImport} disabled={isLoading || !url.trim()}>
+          <Button
+            onClick={() => handleImport()}
+            disabled={isLoading || !url.trim()}
+          >
             {isLoading ? (
               <>
                 <Spinner />
@@ -115,6 +134,27 @@ export const Hero = () => {
             ) : (
               "Import"
             )}
+          </Button>
+        </div>
+      </div>
+
+      {/* Examples Section */}
+      <div className="space-y-4 text-center">
+        <p className="text-muted-foreground text-sm">
+          Try these examples to get started:
+        </p>
+        <div className="flex flex-wrap justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              setUrl("https://petstore.swagger.io/");
+              // Trigger import with the URL directly
+              await handleImport("https://petstore.swagger.io/");
+            }}
+            className="!border-primary/30 text-xs"
+          >
+            🐾 Petstore API
           </Button>
         </div>
       </div>
