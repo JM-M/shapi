@@ -27,6 +27,17 @@ export interface QueryParam {
   enabled: boolean;
 }
 
+export interface Endpoint {
+  path: string;
+  method: string;
+  operation: any;
+}
+
+export interface EndpointGroup {
+  name: string;
+  endpoints: Endpoint[];
+}
+
 export interface LayoutState {
   leftPanelVisible: boolean;
   rightPanelVisible: boolean;
@@ -49,6 +60,7 @@ export interface DashboardState {
   pathParams: QueryParam[];
   headers: QueryParam[];
   layout: LayoutState;
+  parsedEndpoints: EndpointGroup[] | null;
 }
 
 export interface DashboardContextType {
@@ -117,6 +129,7 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
       rightPanelVisible: true,
       layoutType: "2-panel",
     },
+    parsedEndpoints: null,
   });
 
   const extractBaseUrl = (spec: SwaggerSpec): string => {
@@ -157,12 +170,74 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     }
   };
 
+  const parseEndpoints = (spec: SwaggerSpec | null): EndpointGroup[] => {
+    if (!spec) return [];
+
+    try {
+      const data =
+        spec.format === "yaml" ? yaml.load(spec.data) : JSON.parse(spec.data);
+
+      if (!data.paths) return [];
+
+      const endpointGroups: {
+        [key: string]: Endpoint[];
+      } = {};
+
+      Object.entries(data.paths).forEach(([path, pathItem]: [string, any]) => {
+        // Extract first path segment for grouping
+        const pathSegments = path
+          .split("/")
+          .filter((segment) => segment !== "");
+        const groupName =
+          pathSegments.length > 0
+            ? pathSegments[0].charAt(0).toUpperCase() + pathSegments[0].slice(1) // Capitalize first letter
+            : "Root";
+
+        if (!endpointGroups[groupName]) {
+          endpointGroups[groupName] = [];
+        }
+
+        Object.entries(pathItem).forEach(
+          ([method, operation]: [string, any]) => {
+            if (
+              [
+                "get",
+                "post",
+                "put",
+                "delete",
+                "patch",
+                "head",
+                "options",
+              ].includes(method)
+            ) {
+              endpointGroups[groupName].push({
+                path,
+                method: method.toUpperCase(),
+                operation: operation as any,
+              });
+            }
+          },
+        );
+      });
+
+      return Object.entries(endpointGroups).map(([groupName, endpoints]) => ({
+        name: groupName,
+        endpoints,
+      }));
+    } catch (error) {
+      console.error("Error parsing Swagger spec:", error);
+      return [];
+    }
+  };
+
   const setSwaggerSpec = (spec: SwaggerSpec | null) => {
     const baseUrl = spec ? extractBaseUrl(spec) : "";
+    const parsedEndpoints = parseEndpoints(spec);
     setState((prev) => ({
       ...prev,
       swaggerSpec: spec,
       baseUrl,
+      parsedEndpoints,
       error: null, // Clear any previous errors when setting new spec
     }));
   };
@@ -388,6 +463,7 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
         rightPanelVisible: true,
         layoutType: "2-panel",
       },
+      parsedEndpoints: null,
     });
   };
 

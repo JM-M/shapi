@@ -5,10 +5,9 @@
 import { buttonVariants } from "@/components/ui/button";
 import { useDashboard } from "@/contexts/dashboard";
 import { cn } from "@/lib/utils";
-import * as yaml from "js-yaml";
 import { ChevronRightIcon } from "lucide-react";
-import { Fragment, useEffect, useMemo, useState } from "react";
-import { CommandPalette } from "./command-palette";
+import { Fragment, useEffect, useState } from "react";
+import { EndpointsCommandPalette } from "./endpoints-command-palette";
 
 // Function to get styling for HTTP methods
 const getMethodStyle = (method: string) => {
@@ -37,6 +36,8 @@ const getMethodStyle = (method: string) => {
 export const Endpoints = () => {
   const { state, setRequestUrl, setRequestMethod, syncPathParamsWithUrl } =
     useDashboard();
+
+  const endpoints = state.parsedEndpoints || [];
 
   // Function to check if an endpoint is currently active
   const isEndpointActive = (endpoint: { path: string; method: string }) => {
@@ -67,76 +68,12 @@ export const Endpoints = () => {
     });
   };
 
-  const endpoints = useMemo(() => {
-    if (!state.swaggerSpec) return [];
-
-    try {
-      const spec =
-        state.swaggerSpec.format === "yaml"
-          ? yaml.load(state.swaggerSpec.data)
-          : JSON.parse(state.swaggerSpec.data);
-
-      if (!spec.paths) return [];
-
-      const endpointGroups: {
-        [key: string]: Array<{ path: string; method: string; operation: any }>;
-      } = {};
-
-      Object.entries(spec.paths).forEach(([path, pathItem]: [string, any]) => {
-        // Extract first path segment for grouping
-        const pathSegments = path
-          .split("/")
-          .filter((segment) => segment !== "");
-        const groupName =
-          pathSegments.length > 0
-            ? pathSegments[0].charAt(0).toUpperCase() + pathSegments[0].slice(1) // Capitalize first letter
-            : "Root";
-
-        if (!endpointGroups[groupName]) {
-          endpointGroups[groupName] = [];
-        }
-
-        Object.entries(pathItem).forEach(
-          ([method, operation]: [string, any]) => {
-            if (
-              [
-                "get",
-                "post",
-                "put",
-                "delete",
-                "patch",
-                "head",
-                "options",
-              ].includes(method)
-            ) {
-              endpointGroups[groupName].push({
-                path,
-                method: method.toUpperCase(),
-                operation: operation as any,
-              });
-            }
-          },
-        );
-      });
-
-      const groups = Object.entries(endpointGroups).map(
-        ([groupName, endpoints]) => ({
-          name: groupName,
-          endpoints,
-        }),
-      );
-
-      // Initialize all groups as open on first load
-      if (openGroups.size === 0) {
-        setOpenGroups(new Set(groups.map((group) => group.name)));
-      }
-
-      return groups;
-    } catch (error) {
-      console.error("Error parsing Swagger spec:", error);
-      return [];
+  // Initialize all groups as open on first load
+  useEffect(() => {
+    if (endpoints.length > 0 && openGroups.size === 0) {
+      setOpenGroups(new Set(endpoints.map((group) => group.name)));
     }
-  }, [state.swaggerSpec]);
+  }, [endpoints, openGroups.size]);
 
   // Auto-select the first endpoint when endpoints are loaded
   useEffect(() => {
@@ -164,7 +101,7 @@ export const Endpoints = () => {
   return (
     <div className="h-full space-y-4 p-2">
       <div className="sticky top-2 z-10">
-        <CommandPalette />
+        <EndpointsCommandPalette />
       </div>
       {/* <ScrollArea className="h-full [&>div>div]:!block"> */}
       <div className="text-sm">
