@@ -8,9 +8,44 @@ import { ChevronRightIcon } from "lucide-react";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { CommandPalette } from "./command-palette";
 
+// Function to get styling for HTTP methods
+const getMethodStyle = (method: string) => {
+  const methodLower = method.toLowerCase();
+
+  switch (methodLower) {
+    case "get":
+      return "text-green-800 dark:text-green-400";
+    case "post":
+      return "text-blue-800 dark:text-blue-400";
+    case "put":
+      return "text-orange-800 dark:text-orange-400";
+    case "delete":
+      return "text-red-800 dark:text-red-400";
+    case "patch":
+      return "text-purple-800 dark:text-purple-400";
+    case "head":
+      return "text-gray-800 dark:text-gray-400";
+    case "options":
+      return "text-yellow-800 dark:text-yellow-400";
+    default:
+      return "text-gray-800 dark:text-gray-400";
+  }
+};
+
 export const Endpoints = () => {
   const { state, setRequestUrl, setRequestMethod, syncPathParamsWithUrl } =
     useDashboard();
+
+  // Function to check if an endpoint is currently active
+  const isEndpointActive = (endpoint: { path: string; method: string }) => {
+    if (!state.requestUrl || !state.requestMethod) return false;
+    
+    const fullUrl = state.baseUrl
+      ? `${state.baseUrl}${endpoint.path.startsWith("/") ? "" : "/"}${endpoint.path}`
+      : endpoint.path;
+    
+    return fullUrl === state.requestUrl && endpoint.method === state.requestMethod;
+  };
 
   // State to track which groups are open (default: all open)
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
@@ -153,22 +188,28 @@ export const Endpoints = () => {
                 </div>
                 {isOpen && (
                   <ul className="border-accent/50 ml-4 border-l text-[13px]">
-                    {groupEndpoints.map((endpoint, j) => (
-                      <li
-                        key={j}
-                        className={cn(
-                          buttonVariants({ variant: "ghost" }),
-                          "hover:bg-accent/50 flex h-[unset] cursor-pointer items-center justify-between gap-2 rounded-l-none p-2",
-                        )}
-                        onClick={() => {
-                          const fullUrl = state.baseUrl
-                            ? `${state.baseUrl}${endpoint.path.startsWith("/") ? "" : "/"}${endpoint.path}`
-                            : endpoint.path;
-                          setRequestUrl(fullUrl);
-                          setRequestMethod(endpoint.method);
-                          syncPathParamsWithUrl(fullUrl);
-                        }}
-                      >
+                    {groupEndpoints.map((endpoint, j) => {
+                      const isActive = isEndpointActive(endpoint);
+                      
+                      return (
+                        <li
+                          key={j}
+                          className={cn(
+                            buttonVariants({ variant: "ghost" }),
+                            "flex h-[unset] cursor-pointer items-center justify-between gap-2 rounded-l-none p-2",
+                            isActive 
+                              ? "bg-accent/50" 
+                              : "hover:bg-accent/50"
+                          )}
+                          onClick={() => {
+                            const fullUrl = state.baseUrl
+                              ? `${state.baseUrl}${endpoint.path.startsWith("/") ? "" : "/"}${endpoint.path}`
+                              : endpoint.path;
+                            setRequestUrl(fullUrl);
+                            setRequestMethod(endpoint.method);
+                            syncPathParamsWithUrl(fullUrl);
+                          }}
+                        >
                         <div className="flex flex-wrap items-center text-wrap">
                           {endpoint.path.split("/").map((part, k) => (
                             <Fragment key={k}>
@@ -179,11 +220,17 @@ export const Endpoints = () => {
                             </Fragment>
                           ))}
                         </div>
-                        <span className="text-xs font-medium">
+                        <span
+                          className={cn(
+                            "text-xs font-medium",
+                            getMethodStyle(endpoint.method),
+                          )}
+                        >
                           {endpoint.method}
                         </span>
-                      </li>
-                    ))}
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </div>
