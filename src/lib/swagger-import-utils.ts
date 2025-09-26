@@ -22,6 +22,8 @@ const SWAGGER_ENDPOINTS = [
   "/v2/swagger.yaml",
   "/v3/openapi.json",
   "/v3/openapi.yaml",
+  "/swagger/v1/swagger.json",
+  "/swagger/v1/swagger.yaml",
   "/api-docs",
   "/api-docs/swagger.json",
   "/api-docs/swagger.yaml",
@@ -104,22 +106,77 @@ async function extractSpecFromSwaggerUI(
     if (response.status === 200) {
       const html = response.data;
 
+      // Debug: Log the HTML content to help troubleshoot
+      console.log("Swagger UI HTML content:", html.substring(0, 1000) + "...");
+
       // Look for common patterns in Swagger UI HTML
       const patterns = [
+        // Original patterns for explicit file extensions
         /url:\s*["']([^"']*\.(?:json|yaml|yml))["']/gi,
         /spec-url["']:\s*["']([^"']*\.(?:json|yaml|yml))["']/gi,
         /swaggerUrl["']:\s*["']([^"']*\.(?:json|yaml|yml))["']/gi,
         /openapiUrl["']:\s*["']([^"']*\.(?:json|yaml|yml))["']/gi,
         /"url":\s*"([^"]*\.(?:json|yaml|yml))"/gi,
+
+        // Additional patterns for ASP.NET Core and other frameworks
+        /url:\s*["']([^"']*swagger[^"']*\.(?:json|yaml|yml))["']/gi,
+        /url:\s*["']([^"']*\/swagger\/[^"']*\.(?:json|yaml|yml))["']/gi,
+        /url:\s*["']([^"']*\/v\d+\/[^"']*\.(?:json|yaml|yml))["']/gi,
+        /swaggerUrl:\s*["']([^"']*\.(?:json|yaml|yml))["']/gi,
+        /openapiUrl:\s*["']([^"']*\.(?:json|yaml|yml))["']/gi,
+
+        // More flexible patterns that don't require file extensions
+        /url:\s*["']([^"']*swagger[^"']*)["']/gi,
+        /url:\s*["']([^"']*\/swagger\/[^"']*)["']/gi,
+        /url:\s*["']([^"']*\/v\d+\/[^"']*)["']/gi,
+
+        // Patterns for different Swagger UI configurations
+        /SwaggerUIBundle\({\s*url:\s*["']([^"']*)["']/gi,
+        /SwaggerUI\({\s*url:\s*["']([^"']*)["']/gi,
+        /window\.ui\s*=\s*SwaggerUIBundle\({\s*url:\s*["']([^"']*)["']/gi,
       ];
 
       for (const pattern of patterns) {
         const matches = html.match(pattern);
         if (matches) {
           for (const match of matches) {
+            // Extract URL from the match with multiple fallback strategies
             const urlMatch = match.match(/([^"']*\.(?:json|yaml|yml))/);
-            if (urlMatch) {
-              let specUrl = urlMatch[1];
+            const urlMatchNoExt = match.match(/([^"']*swagger[^"']*)/);
+            const urlMatchSwaggerPath = match.match(
+              /([^"']*\/swagger\/[^"']*)/,
+            );
+            const urlMatchVersionPath = match.match(/([^"']*\/v\d+\/[^"']*)/);
+            const urlMatchGeneric = match.match(/([^"']*)/);
+
+            let specUrl =
+              urlMatch?.[1] ||
+              urlMatchNoExt?.[1] ||
+              urlMatchSwaggerPath?.[1] ||
+              urlMatchVersionPath?.[1] ||
+              urlMatchGeneric?.[1];
+
+            if (specUrl) {
+              // Clean up the URL
+              specUrl = specUrl.trim();
+
+              console.log("Found potential spec URL:", specUrl);
+
+              // Add .json extension if missing and it looks like a spec URL
+              if (
+                !specUrl.endsWith(".json") &&
+                !specUrl.endsWith(".yaml") &&
+                !specUrl.endsWith(".yml")
+              ) {
+                if (
+                  specUrl.includes("swagger") ||
+                  specUrl.includes("/v") ||
+                  specUrl.includes("api-docs")
+                ) {
+                  specUrl += ".json";
+                  console.log("Added .json extension:", specUrl);
+                }
+              }
 
               // Make URL absolute if it's relative
               if (specUrl.startsWith("/")) {
@@ -129,6 +186,8 @@ async function extractSpecFromSwaggerUI(
                 const baseUrl = getBaseUrl(url);
                 specUrl = `${baseUrl}/${specUrl}`;
               }
+
+              console.log("Attempting to fetch spec from:", specUrl);
 
               try {
                 const specResponse = await axios.get(specUrl, {
@@ -165,6 +224,14 @@ async function extractSpecFromSwaggerUI(
           }
         }
       }
+    }
+
+    // If HTML extraction failed, try common endpoints as a fallback
+    console.log("HTML extraction failed, trying common endpoints as fallback");
+    const baseUrl = getBaseUrl(url);
+    const fallbackResult = await tryCommonEndpoints(baseUrl);
+    if (fallbackResult.success) {
+      return fallbackResult;
     }
 
     return {
