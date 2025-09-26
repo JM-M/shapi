@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import * as yaml from "js-yaml";
 import { NextRequest, NextResponse } from "next/server";
 
