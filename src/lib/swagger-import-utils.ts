@@ -44,7 +44,7 @@ function getBaseUrl(url: string): string {
 }
 
 /**
- * Try to fetch Swagger spec from common endpoints
+ * Try to fetch Swagger spec from common endpoints using proxy
  */
 async function tryCommonEndpoints(
   baseUrl: string,
@@ -52,7 +52,8 @@ async function tryCommonEndpoints(
   for (const endpoint of SWAGGER_ENDPOINTS) {
     try {
       const fullUrl = `${baseUrl}${endpoint}`;
-      const response = await axios.get(fullUrl, {
+      const proxyUrl = `/api/proxy?url=${encodeURIComponent(fullUrl)}`;
+      const response = await axios.get(proxyUrl, {
         timeout: 10000,
         headers: {
           Accept: "application/json, application/yaml, text/yaml, */*",
@@ -89,17 +90,18 @@ async function tryCommonEndpoints(
 }
 
 /**
- * Try to extract spec URL from Swagger UI page
+ * Try to extract spec URL from Swagger UI page using proxy
  */
 async function extractSpecFromSwaggerUI(
   url: string,
 ): Promise<SwaggerImportResult> {
   try {
-    const response = await axios.get(url, {
+    const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
+    const response = await axios.get(proxyUrl, {
       timeout: 10000,
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        Accept:
+          "text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8",
       },
     });
 
@@ -190,7 +192,8 @@ async function extractSpecFromSwaggerUI(
               console.log("Attempting to fetch spec from:", specUrl);
 
               try {
-                const specResponse = await axios.get(specUrl, {
+                const specProxyUrl = `/api/proxy?url=${encodeURIComponent(specUrl)}`;
+                const specResponse = await axios.get(specProxyUrl, {
                   timeout: 10000,
                   headers: {
                     Accept:
@@ -298,9 +301,10 @@ export async function importSwaggerFromUrl(
       cleanUrl = `https://${cleanUrl}`;
     }
 
-    // First, try to fetch the URL directly (in case it's already a spec file)
+    // First, try to fetch the URL directly through proxy (in case it's already a spec file)
     try {
-      const directResponse = await axios.get(cleanUrl, {
+      const proxyUrl = `/api/proxy?url=${encodeURIComponent(cleanUrl)}`;
+      const directResponse = await axios.get(proxyUrl, {
         timeout: 10000,
         headers: {
           Accept: "application/json, application/yaml, text/yaml, */*",

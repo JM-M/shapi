@@ -35,6 +35,7 @@ export interface Endpoint {
 
 export interface EndpointGroup {
   name: string;
+  description?: string;
   endpoints: Endpoint[];
 }
 
@@ -183,20 +184,13 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
         [key: string]: Endpoint[];
       } = {};
 
+      // First pass: collect all endpoints with their tags
+      const endpointsWithTags: Array<{
+        endpoint: Endpoint;
+        tags: string[];
+      }> = [];
+
       Object.entries(data.paths).forEach(([path, pathItem]: [string, any]) => {
-        // Extract first path segment for grouping
-        const pathSegments = path
-          .split("/")
-          .filter((segment) => segment !== "");
-        const groupName =
-          pathSegments.length > 0
-            ? pathSegments[0].charAt(0).toUpperCase() + pathSegments[0].slice(1) // Capitalize first letter
-            : "Root";
-
-        if (!endpointGroups[groupName]) {
-          endpointGroups[groupName] = [];
-        }
-
         Object.entries(pathItem).forEach(
           ([method, operation]: [string, any]) => {
             if (
@@ -210,20 +204,87 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
                 "options",
               ].includes(method)
             ) {
-              endpointGroups[groupName].push({
+              const endpoint: Endpoint = {
                 path,
                 method: method.toUpperCase(),
                 operation: operation as any,
-              });
+              };
+
+              // Extract tags from operation
+              const tags = operation?.tags || [];
+
+              // If no tags, use path-based grouping as fallback
+              if (!tags || tags.length === 0) {
+                const pathSegments = path
+                  .split("/")
+                  .filter((segment) => segment !== "");
+                const fallbackTag =
+                  pathSegments.length > 0
+                    ? pathSegments[0].charAt(0).toUpperCase() +
+                      pathSegments[0].slice(1)
+                    : "Root";
+                endpointsWithTags.push({
+                  endpoint,
+                  tags: [fallbackTag],
+                });
+              } else {
+                endpointsWithTags.push({
+                  endpoint,
+                  tags,
+                });
+              }
             }
           },
         );
       });
 
-      return Object.entries(endpointGroups).map(([groupName, endpoints]) => ({
-        name: groupName,
-        endpoints,
-      }));
+      // Second pass: group endpoints by tags
+      endpointsWithTags.forEach(({ endpoint, tags }) => {
+        tags.forEach((tag) => {
+          if (!endpointGroups[tag]) {
+            endpointGroups[tag] = [];
+          }
+          endpointGroups[tag].push(endpoint);
+        });
+      });
+
+      // Extract tag descriptions from the OpenAPI spec
+      const tagDescriptions: { [key: string]: string } = {};
+      if (data.tags && Array.isArray(data.tags)) {
+        data.tags.forEach((tag: any) => {
+          if (tag.name && tag.description) {
+            tagDescriptions[tag.name] = tag.description;
+          }
+        });
+      }
+
+      // Sort groups alphabetically and endpoints within groups
+      const sortedGroups = Object.entries(endpointGroups)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([groupName, endpoints]) => ({
+          name: groupName,
+          description: tagDescriptions[groupName],
+          endpoints: endpoints.sort((a, b) => {
+            // Sort by method first, then by path
+            if (a.method !== b.method) {
+              const methodOrder = [
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "PATCH",
+                "HEAD",
+                "OPTIONS",
+              ];
+              return (
+                methodOrder.indexOf(a.method) - methodOrder.indexOf(b.method)
+              );
+            }
+            return a.path.localeCompare(b.path);
+          }),
+        }));
+
+      return sortedGroups;
     } catch (error) {
       console.error("Error parsing Swagger spec:", error);
       return [];

@@ -9,12 +9,12 @@ import { RequestTypes } from "./request-types";
 
 export const Request = () => {
   return (
-    <div className="h-full space-y-6 p-2">
+    <div className="h-full space-y-3 p-2">
       <div className="sticky top-2 z-10">
         <RequestInput />
       </div>
       <Tabs defaultValue="docs" className="flex h-full flex-col gap-4">
-        <TabsList className="sticky top-17 z-10 backdrop-blur-lg">
+        <TabsList className="sticky top-14 z-10 backdrop-blur-lg">
           <TabsTrigger value="docs">Docs</TabsTrigger>
           <TabsTrigger value="types">Types</TabsTrigger>
           <TabsTrigger value="query">Query</TabsTrigger>
