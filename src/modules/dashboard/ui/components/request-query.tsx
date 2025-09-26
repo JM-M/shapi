@@ -140,7 +140,7 @@ const PathParams = () => {
     if (state.requestUrl) {
       syncPathParamsWithUrl(state.requestUrl);
     }
-  }, [state.requestUrl, syncPathParamsWithUrl]); // Remove syncPathParamsWithUrl from dependencies to avoid infinite loops
+  }, [state.requestUrl]); // Remove syncPathParamsWithUrl from dependencies to avoid infinite loops
 
   const handleValueChange = useCallback(
     (id: string, value: string) => {
