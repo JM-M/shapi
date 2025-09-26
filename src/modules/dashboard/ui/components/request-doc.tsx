@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDashboard } from "@/contexts/dashboard";
 import * as yaml from "js-yaml";
 import { useMemo } from "react";
@@ -155,21 +154,17 @@ export const RequestDoc = () => {
   }
 
   return (
-    <div className="h-full space-y-4">
-      <ScrollArea className="h-[600px]">
-        <div className="space-y-4">
-          <OperationOverview
-            operation={currentOperation}
-            method={state.requestMethod}
-          />
-          <ParametersSection parameters={currentOperation.parameters || []} />
-          <RequestBodySection requestBody={currentOperation.requestBody} />
-          <ResponsesSection responses={currentOperation.responses || {}} />
-          <SecuritySection security={currentOperation.security} />
-          {/* This is a workaround to ensure the scroll area is always visible */}
-          <div className="h-[80px]" />
-        </div>
-      </ScrollArea>
+    <div className="h-full">
+      <div className="space-y-4 p-4">
+        <OperationOverview
+          operation={currentOperation}
+          method={state.requestMethod}
+        />
+        <ParametersSection parameters={currentOperation.parameters || []} />
+        <RequestBodySection requestBody={currentOperation.requestBody} />
+        <ResponsesSection responses={currentOperation.responses || {}} />
+        <SecuritySection security={currentOperation.security} />
+      </div>
     </div>
   );
 };

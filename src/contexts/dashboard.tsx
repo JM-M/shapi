@@ -26,6 +26,12 @@ export interface QueryParam {
   enabled: boolean;
 }
 
+export interface LayoutState {
+  leftPanelVisible: boolean;
+  rightPanelVisible: boolean;
+  layoutType: "2-panel" | "3-panel";
+}
+
 export interface DashboardState {
   swaggerSpec: SwaggerSpec | null;
   isLoading: boolean;
@@ -41,6 +47,7 @@ export interface DashboardState {
   queryParams: QueryParam[];
   pathParams: QueryParam[];
   headers: QueryParam[];
+  layout: LayoutState;
 }
 
 export interface DashboardContextType {
@@ -67,6 +74,9 @@ export interface DashboardContextType {
   addHeader: (param: QueryParam) => void;
   updateHeader: (id: string, updates: Partial<QueryParam>) => void;
   removeHeader: (id: string) => void;
+  toggleLeftPanel: () => void;
+  toggleRightPanel: () => void;
+  toggleLayoutType: () => void;
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(
@@ -101,6 +111,11 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     queryParams: [],
     pathParams: [],
     headers: [],
+    layout: {
+      leftPanelVisible: true,
+      rightPanelVisible: true,
+      layoutType: "2-panel",
+    },
   });
 
   const extractBaseUrl = (spec: SwaggerSpec): string => {
@@ -320,6 +335,37 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     }));
   };
 
+  const toggleLeftPanel = () => {
+    setState((prev) => ({
+      ...prev,
+      layout: {
+        ...prev.layout,
+        leftPanelVisible: !prev.layout.leftPanelVisible,
+      },
+    }));
+  };
+
+  const toggleRightPanel = () => {
+    setState((prev) => ({
+      ...prev,
+      layout: {
+        ...prev.layout,
+        rightPanelVisible: !prev.layout.rightPanelVisible,
+      },
+    }));
+  };
+
+  const toggleLayoutType = () => {
+    setState((prev) => ({
+      ...prev,
+      layout: {
+        ...prev.layout,
+        layoutType:
+          prev.layout.layoutType === "2-panel" ? "3-panel" : "2-panel",
+      },
+    }));
+  };
+
   const resetDashboard = () => {
     setState({
       swaggerSpec: null,
@@ -336,6 +382,11 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
       queryParams: [],
       pathParams: [],
       headers: [],
+      layout: {
+        leftPanelVisible: true,
+        rightPanelVisible: true,
+        layoutType: "2-panel",
+      },
     });
   };
 
@@ -363,6 +414,9 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     addHeader,
     updateHeader,
     removeHeader,
+    toggleLeftPanel,
+    toggleRightPanel,
+    toggleLayoutType,
   };
 
   return (

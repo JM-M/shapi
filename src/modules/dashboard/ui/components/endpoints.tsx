@@ -1,7 +1,6 @@
 "use client";
 
 import { buttonVariants } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDashboard } from "@/contexts/dashboard";
 import { cn } from "@/lib/utils";
 import * as yaml from "js-yaml";
@@ -102,73 +101,74 @@ export const Endpoints = () => {
 
   return (
     <div className="h-full space-y-4 p-2">
-      <CommandPalette />
-      <ScrollArea className="h-full [&>div>div]:!block">
-        <div className="text-sm">
-          {endpoints.length === 0 ? (
-            <div className="text-muted-foreground p-4 text-center">
-              No endpoints found
-            </div>
-          ) : (
-            endpoints.map(({ name, endpoints: groupEndpoints }, i) => {
-              const isOpen = openGroups.has(name);
+      <div className="sticky top-0">
+        <CommandPalette />
+      </div>
+      {/* <ScrollArea className="h-full [&>div>div]:!block"> */}
+      <div className="text-sm">
+        {endpoints.length === 0 ? (
+          <div className="text-muted-foreground p-4 text-center">
+            No endpoints found
+          </div>
+        ) : (
+          endpoints.map(({ name, endpoints: groupEndpoints }, i) => {
+            const isOpen = openGroups.has(name);
 
-              return (
-                <div key={i}>
-                  <div
-                    className="hover:bg-accent/50 flex cursor-pointer items-center gap-1 rounded p-2 text-wrap"
-                    onClick={() => toggleGroup(name)}
-                  >
-                    <ChevronRightIcon
-                      className={cn(
-                        "size-4 transition-transform",
-                        isOpen ? "rotate-90" : "rotate-0",
-                      )}
-                    />
-                    <span>{name}</span>
-                  </div>
-                  {isOpen && (
-                    <ul className="border-accent/50 ml-4 border-l text-[13px]">
-                      {groupEndpoints.map((endpoint, j) => (
-                        <li
-                          key={j}
-                          className={cn(
-                            buttonVariants({ variant: "ghost" }),
-                            "hover:bg-accent/50 flex h-[unset] cursor-pointer items-center justify-between gap-2 rounded-l-none p-2",
-                          )}
-                          onClick={() => {
-                            const fullUrl = state.baseUrl
-                              ? `${state.baseUrl}${endpoint.path.startsWith("/") ? "" : "/"}${endpoint.path}`
-                              : endpoint.path;
-                            setRequestUrl(fullUrl);
-                            setRequestMethod(endpoint.method);
-                            syncPathParamsWithUrl(fullUrl);
-                          }}
-                        >
-                          <div className="flex flex-wrap items-center text-wrap">
-                            {endpoint.path.split("/").map((part, k) => (
-                              <Fragment key={k}>
-                                <span>
-                                  {part}
-                                  {k < endpoint.path.split("/").length - 1 &&
-                                    "/"}
-                                </span>
-                              </Fragment>
-                            ))}
-                          </div>
-                          <span className="text-xs font-medium">
-                            {endpoint.method}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+            return (
+              <div key={i}>
+                <div
+                  className="hover:bg-accent/50 flex cursor-pointer items-center gap-1 rounded p-2 text-wrap"
+                  onClick={() => toggleGroup(name)}
+                >
+                  <ChevronRightIcon
+                    className={cn(
+                      "size-4 transition-transform",
+                      isOpen ? "rotate-90" : "rotate-0",
+                    )}
+                  />
+                  <span>{name}</span>
                 </div>
-              );
-            })
-          )}
-        </div>
-      </ScrollArea>
+                {isOpen && (
+                  <ul className="border-accent/50 ml-4 border-l text-[13px]">
+                    {groupEndpoints.map((endpoint, j) => (
+                      <li
+                        key={j}
+                        className={cn(
+                          buttonVariants({ variant: "ghost" }),
+                          "hover:bg-accent/50 flex h-[unset] cursor-pointer items-center justify-between gap-2 rounded-l-none p-2",
+                        )}
+                        onClick={() => {
+                          const fullUrl = state.baseUrl
+                            ? `${state.baseUrl}${endpoint.path.startsWith("/") ? "" : "/"}${endpoint.path}`
+                            : endpoint.path;
+                          setRequestUrl(fullUrl);
+                          setRequestMethod(endpoint.method);
+                          syncPathParamsWithUrl(fullUrl);
+                        }}
+                      >
+                        <div className="flex flex-wrap items-center text-wrap">
+                          {endpoint.path.split("/").map((part, k) => (
+                            <Fragment key={k}>
+                              <span>
+                                {part}
+                                {k < endpoint.path.split("/").length - 1 && "/"}
+                              </span>
+                            </Fragment>
+                          ))}
+                        </div>
+                        <span className="text-xs font-medium">
+                          {endpoint.method}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+      {/* </ScrollArea> */}
     </div>
   );
 };
