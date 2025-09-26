@@ -68,12 +68,19 @@ export const Endpoints = () => {
     });
   };
 
-  // Initialize all groups as open on first load
+  // Initialize all groups as open on first load only
   useEffect(() => {
     if (endpoints.length > 0 && openGroups.size === 0) {
-      setOpenGroups(new Set(endpoints.map((group) => group.name)));
+      // Only auto-open groups if this is the initial load (no groups have been manually closed)
+      const hasBeenInitialized = sessionStorage.getItem(
+        "endpoints-initialized",
+      );
+      if (!hasBeenInitialized) {
+        setOpenGroups(new Set(endpoints.map((group) => group.name)));
+        sessionStorage.setItem("endpoints-initialized", "true");
+      }
     }
-  }, [endpoints, openGroups.size]);
+  }, [endpoints]);
 
   // Auto-select the first endpoint when endpoints are loaded
   useEffect(() => {
