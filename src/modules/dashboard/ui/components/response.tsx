@@ -55,6 +55,7 @@ export const Response = () => {
           readOnly
           hideCursor
           showCopyButton
+          maxHeight=""
         />
       </div>
     </div>

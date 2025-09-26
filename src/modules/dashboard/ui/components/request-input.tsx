@@ -32,15 +32,6 @@ export const RequestInput = () => {
     return url.substring(baseUrl.length);
   };
 
-  // Helper function to build full URL from path
-  const buildFullUrl = (path: string, baseUrl: string): string => {
-    if (!baseUrl) return path;
-    if (path.startsWith("http://") || path.startsWith("https://")) {
-      return path; // Already a full URL
-    }
-    return `${baseUrl}${path.startsWith("/") ? "" : "/"}${path}`;
-  };
-
   // Helper function to build URL with path and query parameters for display
   const buildUrlWithParams = (
     baseUrl: string,
@@ -208,7 +199,7 @@ export const RequestInput = () => {
   });
 
   return (
-    <div className="relative h-fit w-full">
+    <div className="relative h-fit w-full rounded-md backdrop-blur-lg">
       <Select value={state.requestMethod} onValueChange={setRequestMethod}>
         <SelectTrigger className="absolute top-[2px] left-[2px] !h-[calc(100%-4px)] w-24 border-none text-xs font-medium">
           <SelectValue />

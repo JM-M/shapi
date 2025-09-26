@@ -5,7 +5,7 @@ import { useDashboard } from "@/contexts/dashboard";
 import { cn } from "@/lib/utils";
 import * as yaml from "js-yaml";
 import { ChevronRightIcon } from "lucide-react";
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { CommandPalette } from "./command-palette";
 
 export const Endpoints = () => {
@@ -99,9 +99,32 @@ export const Endpoints = () => {
     }
   }, [state.swaggerSpec]);
 
+  // Auto-select the first endpoint when endpoints are loaded
+  useEffect(() => {
+    if (endpoints.length > 0 && !state.requestUrl) {
+      const firstGroup = endpoints[0];
+      if (firstGroup.endpoints.length > 0) {
+        const firstEndpoint = firstGroup.endpoints[0];
+        const fullUrl = state.baseUrl
+          ? `${state.baseUrl}${firstEndpoint.path.startsWith("/") ? "" : "/"}${firstEndpoint.path}`
+          : firstEndpoint.path;
+        setRequestUrl(fullUrl);
+        setRequestMethod(firstEndpoint.method);
+        syncPathParamsWithUrl(fullUrl);
+      }
+    }
+  }, [
+    endpoints,
+    state.baseUrl,
+    state.requestUrl,
+    setRequestUrl,
+    setRequestMethod,
+    syncPathParamsWithUrl,
+  ]);
+
   return (
     <div className="h-full space-y-4 p-2">
-      <div className="sticky top-0">
+      <div className="sticky top-2 z-10">
         <CommandPalette />
       </div>
       {/* <ScrollArea className="h-full [&>div>div]:!block"> */}
